@@ -1,0 +1,40 @@
+version: "3.9"
+networks:
+  myAppNetwork:
+    driver: bridge
+
+services:
+  sqlServerDb:
+    container_name: catMSSQL
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "8002:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=myStong_Password123#
+    networks:
+      - myAppNetwork
+    volumes:
+      - msvol:/var/opt/mssql  # Use the volume name msvol here
+
+  app:
+    container_name: catMan
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8001:80"
+    networks:
+      - myAppNetwork
+    depends_on:
+      - sqlServerDb
+    volumes:
+      - appvol:/app/images  # Use the volume name appvol here
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+
+volumes:
+  msvol:
+  appvol:
